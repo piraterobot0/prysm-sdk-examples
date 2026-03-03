@@ -1,0 +1,12 @@
+{
+  "name": "van420bot-prysm-trader",
+  "version": "1.0.0",
+  "description": "Standalone Prysm trading CLI for Polygon Amoy testnet",
+  "main": "trade.js",
+  "scripts": {
+    "trade": "node trade.js"
+  },
+  "dependencies": {
+    "ethers": "^5.8.0"
+  }
+}
