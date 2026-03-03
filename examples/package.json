@@ -1,0 +1,9 @@
+{
+  "name": "prysm-sdk-example",
+  "version": "1.0.0",
+  "description": "Example bot using @prysm/sdk",
+  "dependencies": {
+    "@prysm/sdk": "^0.1.0",
+    "ethers": "^5.8.0"
+  }
+}
