@@ -62,7 +62,7 @@ RPC: `https://rpc-amoy.polygon.technology`
 
 | Contract | Address |
 |----------|---------|
-| PrysmBookV1 | `0xBDaa9dFc03fF0b72c7aAc9D4C0C5AeB7d942AB01` |
+| PrysmBookV2 | `0xa6D0CFfc4039bC6572e66CF9B09d004e811fd1B9` |
 | USDC | `0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174` |
 | CTF | `0x4D97DCd97eC945f40cF65F87097ACe5EA0476045` |
 
