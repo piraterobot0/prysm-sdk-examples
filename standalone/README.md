@@ -38,6 +38,7 @@ node trade.js post BUY 0.55 10
 | `node trade.js cancel 123` | Cancel your order #123 |
 | `node trade.js book` | Show all open orders for the active market |
 | `node trade.js balance` | Show USDC, POL, YES/NO token balances |
+| `node trade.js mint 100` | Mint 100 testnet USDC to your wallet |
 | `node trade.js help` | Show usage info |
 
 ## Environment Variables
@@ -75,6 +76,6 @@ Check the Prysm dashboard for active markets, or ask the team for the conditionI
 ## Troubleshooting
 
 - **"insufficient funds for gas"** — You need POL for gas. Ask for a top-up.
-- **"insufficient USDC"** — Need more testnet USDC minted (deployer can mint).
+- **"insufficient USDC"** — Run `node trade.js mint 1000` to mint testnet USDC (anyone can mint, no restrictions).
 - **Transaction stuck** — Amoy can be slow, wait 30-60s. If stuck, try a higher gas RPC.
 - **"PRIVATE_KEY env var is required"** — Create a `.env` file or export the var.

@@ -20,7 +20,20 @@ node trade.js post BUY 0.55 10
 
 See [`standalone/README.md`](standalone/README.md) for full docs.
 
-### Option 2: Using @prysm/sdk
+### Option 2: Vincent Adapter (for agents / strategy engines)
+
+A TypeScript adapter module that wraps PrysmBookV1 in a clean interface for Vincent (Lit Protocol) or any strategy engine. Generic signer interface — works with EOA keys now, plugs into Vincent's PKP smart wallet later.
+
+```bash
+cd vincent-adapter
+npm install && npm run build
+# Set PRIVATE_KEY and CONDITION_ID in .env
+node test.js
+```
+
+See [`vincent-adapter/README.md`](vincent-adapter/README.md) for full API docs.
+
+### Option 3: Using @prysm/sdk
 
 The SDK gives you `PrysmBookClient` with typed methods for all on-chain operations, plus Amoy testnet helpers with gas patches.
 
@@ -57,6 +70,8 @@ See [`examples/simple-trader.js`](examples/simple-trader.js) for a complete work
 | MockCTF | `0x19769a54A1677BEd3A5457020F8D19DD8B0FB503` |
 
 RPC: `https://rpc-amoy.polygon.technology`
+
+**Testnet USDC faucet:** MockUSDC has unrestricted minting — anyone can call `mint(address, amount)` directly, or use `node trade.js mint 1000` in the standalone CLI.
 
 ### Polygon Mainnet (chain 137)
 

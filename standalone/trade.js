@@ -12,6 +12,7 @@
  *   node trade.js cancel 123             Cancel order #123
  *   node trade.js book                   Show open orders for market
  *   node trade.js balance                Show USDC + POL balances
+ *   node trade.js mint 100               Mint 100 testnet USDC to your wallet
  *
  * Env vars (or .env file):
  *   PRIVATE_KEY    — your wallet private key (0x-prefixed)
@@ -64,6 +65,7 @@ const ERC20_ABI = [
   'function approve(address spender, uint256 amount) returns (bool)',
   'function balanceOf(address account) view returns (uint256)',
   'function allowance(address owner, address spender) view returns (uint256)',
+  'function mint(address to, uint256 amount)',
 ];
 
 const ERC1155_ABI = [
@@ -321,6 +323,20 @@ async function cmdBalance({ wallet, provider, usdc, ctf, book, conditionId }) {
   console.log(`NO tokens:  ${formatUsdc(noBal)}`);
 }
 
+async function cmdMint({ wallet, usdc }, amountUsdc) {
+  if (isNaN(amountUsdc) || amountUsdc <= 0) die('Amount must be positive (e.g. "mint 100" for $100)');
+
+  const amount = Math.round(amountUsdc * 1_000_000);
+  const address = wallet.address;
+
+  console.log(`Minting $${amountUsdc} testnet USDC to ${address}...`);
+  const tx = await usdc.mint(address, amount);
+  await tx.wait();
+
+  const newBalance = await usdc.balanceOf(address);
+  console.log(`Minted! New balance: $${formatUsdc(newBalance)}`);
+}
+
 // =============================================================================
 // Main
 // =============================================================================
@@ -339,6 +355,7 @@ Usage:
   node trade.js cancel 123             Cancel your order #123
   node trade.js book                   Show open orders for market
   node trade.js balance                Show your balances
+  node trade.js mint 100               Mint 100 testnet USDC to your wallet
 
 Env vars (or .env file):
   PRIVATE_KEY    Your wallet private key (0x-prefixed)
@@ -373,6 +390,9 @@ Env vars (or .env file):
       break;
     case 'balance':
       await cmdBalance(ctx);
+      break;
+    case 'mint':
+      await cmdMint(ctx, parseFloat(args[0]));
       break;
     default:
       die(`Unknown command: ${action}. Run "node trade.js help" for usage.`);
