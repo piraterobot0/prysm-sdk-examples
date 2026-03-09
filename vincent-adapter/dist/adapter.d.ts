@@ -123,6 +123,7 @@ declare const AMOY_ADDRESSES: {
     usdc: string;
     ctf: string;
 };
+export declare function patchAmoyProvider(provider: ethers.providers.JsonRpcProvider): ethers.providers.JsonRpcProvider;
 export declare class PrysmAdapter {
     readonly provider: ethers.providers.JsonRpcProvider;
     readonly signer: PrysmSigner;

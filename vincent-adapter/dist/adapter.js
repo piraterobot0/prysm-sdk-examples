@@ -24,6 +24,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PrysmAdapter = exports.BookStatus = exports.BookMode = exports.BookSide = void 0;
 exports.createEOASigner = createEOASigner;
+exports.patchAmoyProvider = patchAmoyProvider;
 const ethers_1 = require("ethers");
 // Wrap an ethers.Wallet as a PrysmSigner (default path for EOA keys)
 function createEOASigner(privateKey, provider) {

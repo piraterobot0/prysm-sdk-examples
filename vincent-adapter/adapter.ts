@@ -191,7 +191,7 @@ const ERC1155_ABI = [
 // Amoy gas patch — required or transactions fail
 // =============================================================================
 
-function patchAmoyProvider(provider: ethers.providers.JsonRpcProvider): ethers.providers.JsonRpcProvider {
+export function patchAmoyProvider(provider: ethers.providers.JsonRpcProvider): ethers.providers.JsonRpcProvider {
   if ((provider as any).formatter?.address) {
     const original = (provider as any).formatter.address.bind((provider as any).formatter);
     (provider as any).formatter.address = (value: string) => {
