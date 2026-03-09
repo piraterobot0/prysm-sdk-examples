@@ -273,29 +273,43 @@ export class PrysmAdapter {
   // ---------------------------------------------------------------------------
 
   async getOrderbook(conditionId: string): Promise<Orderbook> {
-    const nextId = (await this.book.nextOrderId()).toNumber();
+    // Step 1: Scan OrderPosted events to find candidate order IDs for this market.
+    // conditionId is NOT indexed, so we fetch all events and filter in JS.
+    // This is much faster than fetching all order state individually.
+    const candidateIds = await this._scanCandidateOrderIds(conditionId);
+
+    // Step 2: Batch-fetch on-chain state for candidates (chunks of 50)
+    const CHUNK_SIZE = 50;
     const orders: Order[] = [];
 
-    // Batch-fetch all orders. conditionId not indexed — must scan all.
-    for (let id = 1; id < nextId; id++) {
-      const raw = await this.book.orders(id);
-      if (raw.status !== BookStatus.OPEN) continue;
-      if (raw.conditionId.toLowerCase() !== conditionId.toLowerCase()) continue;
+    for (let i = 0; i < candidateIds.length; i += CHUNK_SIZE) {
+      const chunk = candidateIds.slice(i, i + CHUNK_SIZE);
+      const results = await Promise.all(
+        chunk.map(async (id) => {
+          const [raw, remaining] = await Promise.all([
+            this.book.orders(id),
+            this.book.remainingSize(id),
+          ]);
+          return { id, raw, remaining };
+        })
+      );
 
-      const remaining = await this.book.remainingSize(id);
-      orders.push({
-        orderId: id,
-        maker: raw.maker,
-        conditionId: raw.conditionId,
-        side: raw.side,
-        mode: raw.mode,
-        price: raw.price.toNumber(),
-        size: raw.size.toNumber(),
-        filled: raw.filled.toNumber(),
-        remaining: remaining.toNumber(),
-        expiration: raw.expiration.toNumber(),
-        status: raw.status,
-      });
+      for (const { id, raw, remaining } of results) {
+        if (raw.status !== BookStatus.OPEN) continue;
+        orders.push({
+          orderId: id,
+          maker: raw.maker,
+          conditionId: raw.conditionId,
+          side: raw.side,
+          mode: raw.mode,
+          price: raw.price.toNumber(),
+          size: raw.size.toNumber(),
+          filled: raw.filled.toNumber(),
+          remaining: remaining.toNumber(),
+          expiration: raw.expiration.toNumber(),
+          status: raw.status,
+        });
+      }
     }
 
     // Aggregate into price levels
@@ -326,6 +340,44 @@ export class PrysmAdapter {
     const midPrice = bestBid !== null && bestAsk !== null ? (bestBid + bestAsk) / 2 : null;
 
     return { bids, asks, bestBid, bestAsk, spread, midPrice };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Event scan — find candidate order IDs for a conditionId
+  // ---------------------------------------------------------------------------
+
+  private async _scanCandidateOrderIds(conditionId: string): Promise<number[]> {
+    const iface = new ethers.utils.Interface(PRYSM_BOOK_ABI);
+    const eventTopic = iface.getEventTopic('OrderPosted');
+    const currentBlock = await this.provider.getBlockNumber();
+
+    // Scan in block range chunks to avoid RPC limits (Amoy allows ~10k blocks per query)
+    const BLOCK_RANGE = 10_000;
+    // Look back ~200k blocks (~5 days on Amoy). For older markets, increase this.
+    const fromBlock = Math.max(0, currentBlock - 200_000);
+
+    const candidateIds: number[] = [];
+    const conditionLower = conditionId.toLowerCase();
+
+    for (let start = fromBlock; start <= currentBlock; start += BLOCK_RANGE) {
+      const end = Math.min(start + BLOCK_RANGE - 1, currentBlock);
+      const logs = await this.provider.getLogs({
+        address: this.addresses.prysmBook,
+        topics: [eventTopic],
+        fromBlock: start,
+        toBlock: end,
+      });
+
+      for (const log of logs) {
+        const parsed = iface.parseLog(log);
+        // conditionId is not indexed — it's in the data payload
+        if (parsed.args.conditionId.toLowerCase() === conditionLower) {
+          candidateIds.push(parsed.args.orderId.toNumber());
+        }
+      }
+    }
+
+    return candidateIds;
   }
 
   // ---------------------------------------------------------------------------
